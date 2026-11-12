@@ -91,15 +91,11 @@ class PDFPlaceReader:
         toolbar.pack(side=tk.TOP, fill=tk.X)
 
         ttk.Button(toolbar, text="Open PDF", command=self.open_pdf).pack(side=tk.LEFT)
-        ttk.Button(toolbar, text="Previous", command=self.previous_page).pack(
-            side=tk.LEFT, padx=(8, 2)
-        )
+        ttk.Button(toolbar, text="Previous", command=self.previous_page).pack(side=tk.LEFT, padx=(8, 2))
         ttk.Button(toolbar, text="Next", command=self.next_page).pack(side=tk.LEFT)
 
         self.page_var = tk.StringVar(value="No PDF open")
-        ttk.Label(toolbar, textvariable=self.page_var, width=18).pack(
-            side=tk.LEFT, padx=10
-        )
+        ttk.Label(toolbar, textvariable=self.page_var, width=18).pack(side=tk.LEFT, padx=10)
 
         ttk.Label(toolbar, text="Go to:").pack(side=tk.LEFT)
         self.goto_var = tk.StringVar()
@@ -147,17 +143,12 @@ class PDFPlaceReader:
             value="Open a PDF. Your last page is saved automatically."
         )
 
-        ttk.Label(
-            status_bar,
-            textvariable=self.status_var,
-            anchor=tk.W
-        ).pack(side=tk.LEFT)
+        ttk.Label(status_bar,textvariable=self.status_var,anchor=tk.W).pack(side=tk.LEFT)
 
         # PDF viewing area occupies all remaining space
         self.h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
         self.v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
         self.canvas.bind("<Configure>", self._on_canvas_resize)
 
     def open_pdf(self):
@@ -204,16 +195,23 @@ class PDFPlaceReader:
         self.current_photo = ImageTk.PhotoImage(image)
 
         self.canvas.delete("all")
-        self.canvas.create_image(12, 12, anchor=tk.NW, image=self.current_photo)
-        self.canvas.configure(scrollregion=(0, 0, pixmap.width + 24, pixmap.height + 24))
-        self.canvas.xview_moveto(0)
-        self.canvas.yview_moveto(0)
+        # Calculate horizontal position to center the PDF
+        canvas_width = self.canvas.winfo_width()
+        image_x = max(12, (canvas_width - pixmap.width) // 2)
+        self.canvas.create_image(
+            image_x,
+            12,
+            anchor=tk.NW,
+            image=self.current_photo
+        )
+        # Keep the scrollable area large enough for the entire PDF
+        scroll_width = max(canvas_width, image_x + pixmap.width + 12)
+        self.canvas.configure(scrollregion=(0, 0, scroll_width, pixmap.height + 24))
 
+        self.canvas.yview_moveto(0)
         total = self.document.page_count
         self.page_var.set(f"Page {self.page_index + 1} / {total}")
         self.goto_var.set(str(self.page_index + 1))
-
-        # Commit immediately: closing or crashing after this point won't lose the page.
         self.store.save_page(self.pdf_path, self.page_index)
 
     def previous_page(self):
@@ -235,10 +233,7 @@ class PDFPlaceReader:
             messagebox.showwarning("Invalid page", "Enter a whole page number.")
             return
         if not 1 <= requested <= self.document.page_count:
-            messagebox.showwarning(
-                "Page out of range",
-                f"Enter a page from 1 to {self.document.page_count}."
-            )
+            messagebox.showwarning("Page out of range", f"Enter a page from 1 to {self.document.page_count}.")
             return
         self.page_index = requested - 1
         self.render_page()
