@@ -116,25 +116,47 @@ class PDFPlaceReader:
                    command=lambda: self.change_zoom(0.15)).pack(side=tk.RIGHT)
         ttk.Label(toolbar, text="Zoom").pack(side=tk.RIGHT, padx=5)
 
-        self.canvas = tk.Canvas(self.root, background="#555555", highlightthickness=0)
+        self.canvas = tk.Canvas(
+            self.root,
+            background="#555555",
+            highlightthickness=0
+        )
+
         self.v_scroll = ttk.Scrollbar(
-            self.root, orient=tk.VERTICAL, command=self.canvas.yview
+            self.root,
+            orient=tk.VERTICAL,
+            command=self.canvas.yview
         )
+
         self.h_scroll = ttk.Scrollbar(
-            self.root, orient=tk.HORIZONTAL, command=self.canvas.xview
+            self.root,
+            orient=tk.HORIZONTAL,
+            command=self.canvas.xview
         )
+
         self.canvas.configure(
-            yscrollcommand=self.v_scroll.set, xscrollcommand=self.h_scroll.set
+            yscrollcommand=self.v_scroll.set,
+            xscrollcommand=self.h_scroll.set
         )
-        self.v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-        self.h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
-        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Dedicated status bar at the very bottom
+        status_bar = ttk.Frame(self.root, padding=(8, 3))
+        status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.status_var = tk.StringVar(
             value="Open a PDF. Your last page is saved automatically."
         )
-        ttk.Label(self.root, textvariable=self.status_var, anchor=tk.W,
-                  padding=(8, 4)).pack(side=tk.BOTTOM, fill=tk.X)
+
+        ttk.Label(
+            status_bar,
+            textvariable=self.status_var,
+            anchor=tk.W
+        ).pack(side=tk.LEFT)
+
+        # PDF viewing area occupies all remaining space
+        self.h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
+        self.v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         self.canvas.bind("<Configure>", self._on_canvas_resize)
 
